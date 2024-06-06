@@ -22,6 +22,26 @@ def generate_sql_file(url_data, env="staging"):
         # Start the SQL transaction
         file.write("START TRANSACTION;\n")
 
+        # Set of usernames to clear JSON objects
+        usernames = set(username for _, username, _ in url_data)
+
+        # Fetch account_ids for usernames and store in a temporary table
+        file.write(
+            "CREATE TEMPORARY TABLE tmp_user_ids (username VARCHAR(255), account_id INT);\n"
+        )
+        file.write("INSERT INTO tmp_user_ids (username, account_id)\n")
+        file.write(
+            "SELECT username, id FROM accounts WHERE username IN ('"
+            + "', '".join(usernames)
+            + "');\n"
+        )
+
+        # Clear the social_urls column for all involved account_ids
+        file.write(
+            "UPDATE users SET social_urls = '{}' WHERE account_id IN (SELECT account_id FROM tmp_user_ids);\n"
+        )
+
+        # Write SQL commands for each URL
         for url, username, column_name in url_data:
             # domain_key = extract_domain_key(url)  # Extract simplified domain key
             domain_key = column_name  # use column name
