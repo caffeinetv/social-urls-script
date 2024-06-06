@@ -22,9 +22,9 @@ def generate_sql_file(url_data, env="staging"):
         # Start the SQL transaction
         file.write("START TRANSACTION;\n")
 
-        for url, username in url_data:
-            domain_key = extract_domain_key(url)  # Extract simplified domain key
-
+        for url, username, column_name in url_data:
+            # domain_key = extract_domain_key(url)  # Extract simplified domain key
+            domain_key = column_name  # use column name
             # SQL statement to fetch account_id and update the social_urls
             sql = f"""
     -- Fetch account_id for the username

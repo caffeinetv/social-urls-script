@@ -22,8 +22,8 @@ bad_urls = []
 unsafe_urls = []
 valid_urls = []
 
-
 if data:
+    header = data[0]
     processed_urls = []  # To keep track of URLs and their status
 
     for row in data[1:]:
@@ -34,28 +34,28 @@ if data:
             row[0]
         )  # Assuming the creator's name is in the first column
 
-        for r in row[1:]:
+        for idx, r in enumerate(row[1:]):
             if r == "" or r.isnumeric():
                 break
             url = r.strip()
             is_valid = validate_url_format(url)
-
+            column_name = header[idx + 1].replace(" ", "").lower()
             # Initially add all non-empty URLs to processed_urls with a preliminary validity status
             if is_valid:
-                processed_urls.append((url, creator, is_valid))
+                processed_urls.append((url, creator, is_valid, column_name))
             else:
-                bad_urls.append((url, creator))
+                bad_urls.append((url, creator, column_name))
 
     # Check the safety of all URLs
-    all_urls = [url for url, creator, is_valid in processed_urls]
+    all_urls = [url for url, _, _, _ in processed_urls]
     unsafe_urls = safe_browsing_check(all_urls)  # Assuming this function is defined
 
     # Final categorization
-    for url, creator, is_valid in processed_urls:
+    for url, creator, is_valid, column_name in processed_urls:
         if url in unsafe_urls or not is_valid:
-            bad_urls.append((url, creator))
+            bad_urls.append((url, creator, column_name))
         else:
-            valid_urls.append((url, creator))
+            valid_urls.append((url, creator, column_name))
 
     # Output results
     if bad_urls:
@@ -66,11 +66,11 @@ if data:
     generate_sql_file(valid_urls, env="prd")
 
     # Optionally, duplicate the sheet for archival
-    sheet_id = get_sheet_id_by_name(service, spreadsheet_id, "Social Profile Links")
-    if sheet_id is not None:
-        duplicate_sheet_with_timestamp(service, spreadsheet_id, sheet_id, "Archived ")
-    else:
-        print("Sheet not found.")
+    # sheet_id = get_sheet_id_by_name(service, spreadsheet_id, "Social Profile Links")
+    # if sheet_id is not None:
+    #     duplicate_sheet_with_timestamp(service, spreadsheet_id, sheet_id, "Archived ")
+    # else:
+    #     print("Sheet not found.")
 
 
 else:
