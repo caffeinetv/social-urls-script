@@ -66,11 +66,11 @@ if data:
     generate_sql_file(valid_urls, env="prd")
 
     # Optionally, duplicate the sheet for archival
-    # sheet_id = get_sheet_id_by_name(service, spreadsheet_id, "Social Profile Links")
-    # if sheet_id is not None:
-    #     duplicate_sheet_with_timestamp(service, spreadsheet_id, sheet_id, "Archived ")
-    # else:
-    #     print("Sheet not found.")
+    sheet_id = get_sheet_id_by_name(service, spreadsheet_id, "Social Profile Links")
+    if sheet_id is not None:
+        duplicate_sheet_with_timestamp(service, spreadsheet_id, sheet_id, "Archived ")
+    else:
+        print("Sheet not found.")
 
 
 else:

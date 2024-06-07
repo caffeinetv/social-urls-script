@@ -25,21 +25,10 @@ def generate_sql_file(url_data, env="staging"):
         # Set of usernames to clear JSON objects
         usernames = set(username for _, username, _ in url_data)
 
-        # Fetch account_ids for usernames and store in a temporary table
-        file.write(
-            "CREATE TEMPORARY TABLE tmp_user_ids (username VARCHAR(255), account_id INT);\n"
-        )
-        file.write("INSERT INTO tmp_user_ids (username, account_id)\n")
-        file.write(
-            "SELECT username, id FROM accounts WHERE username IN ('"
-            + "', '".join(usernames)
-            + "');\n"
-        )
+        # Clear the social_urls column for all involved usernames
+        usernames = set(username for _, username, _ in url_data)
+        file.write(f"UPDATE users SET social_urls = '{{}}' WHERE account_id IN (SELECT id FROM accounts WHERE username IN ({', '.join(f'\'{username}\'' for username in usernames)}));\n")
 
-        # Clear the social_urls column for all involved account_ids
-        file.write(
-            "UPDATE users SET social_urls = '{}' WHERE account_id IN (SELECT account_id FROM tmp_user_ids);\n"
-        )
 
         # Write SQL commands for each URL
         for url, username, column_name in url_data:
@@ -70,7 +59,7 @@ def generate_sql_file(url_data, env="staging"):
 
 # # Example usage:
 # url_data = [
-#     ("https://www.facebook.com/username2", "frankzhang2"),
-#     ("https://www.instagram.com/username2", "frankzhang2"),
+#     ("https://www.facebook.com/username2", "frankzhang2", "facebook2"),
+#     ("https://www.instagram.com/username2", "staging-joe", "instagram2"),
 # ]
 # filename = generate_sql_file(url_data)
